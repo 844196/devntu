@@ -76,10 +76,7 @@ Vagrant.configure(2) do |config|
     sudo apt-get install -y git tmux zsh vim-gnome paco
     git clone https://github.com/844196/dotfiles /home/vagrant/dotfiles
     /home/vagrant/dotfiles/bootstrap
-    sudo mkdir -p /usr/share/zsh/plugins
-    sudo git clone \
-      https://github.com/zsh-users/zsh-syntax-highlighting \
-      /usr/share/zsh/plugins/zsh-syntax-highlighting
+    /home/vagrant/dotfiles/etc/install_zsh_syntax_highlighting
     sudo chsh -s /bin/zsh vagrant
   SHELL
 
