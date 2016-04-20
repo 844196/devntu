@@ -15,6 +15,7 @@ Vagrant.configure(2) do |config|
   # add repository for PHP7
   config.vm.provision 'shell', :privileged => true, :inline => <<-SHELL
     yes '' | add-apt-repository ppa:ondrej/php
+    yes '' | add-apt-repository ppa:brightbox/ruby-ng
   SHELL
 
   # apt-get update
@@ -82,18 +83,10 @@ Vagrant.configure(2) do |config|
     sudo chsh -s /bin/zsh vagrant
   SHELL
 
-  # rbenv and Ruby2.3
-  config.vm.provision 'shell', :privileged => false, :inline => <<-SHELL
-    sudo apt-get install -y \
-      libssl-dev \
-      libreadline-dev \
-      zlib1g-dev
-    git clone https://github.com/rbenv/rbenv ~/.rbenv
-    git clone https://github.com/rbenv/ruby-build ~/.rbenv/plugins/ruby-build
-    (cd ~/.rbenv && src/configure && make -C src)
-    export PATH="$HOME/.rbenv/bin:$PATH"
-    CONFIGURE_OPTS="--disable-install-rdoc" rbenv install 2.3.0 --verbose && rbenv global 2.3.0
-    eval "$(rbenv init -)" && gem install bundler
+  # Ruby2.3
+  config.vm.provision 'shell', :privileged => true, :inline => <<-SHELL
+    apt-get install -y ruby2.3=2.3.0-1bbox2~trusty1
+    gem install bundler
   SHELL
 
   # paco and peco
