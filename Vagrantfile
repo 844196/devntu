@@ -4,12 +4,15 @@
 Vagrant.configure(2) do |config|
   config.vm.box = 'ubuntu/trusty64'
   config.vm.network 'private_network', ip: '192.168.33.10'
+  config.vm.provider(:virtualbox) {|vb| vb.memory = '2048' }
 
-  config.vm.provider :virtualbox do |vb|
-    vb.memory = '2048'
-  end
+  # set timezone
+  config.vm.provision 'shell', :privileged => true, :inline => <<-SHELL
+    timedatectl set-timezone Asia/Tokyo
+    printf '[mysqld_safe]\ntimezone = JST\n' >> /etc/my.cnf
+  SHELL
 
-  # add repository for PHP7 and phpMyAdmin
+  # add repository for PHP7
   config.vm.provision 'shell', :privileged => true, :inline => <<-SHELL
     yes '' | add-apt-repository ppa:ondrej/php
   SHELL
@@ -54,9 +57,56 @@ Vagrant.configure(2) do |config|
     apt-get install -y phpmyadmin=4:4.0.10-1
   SHELL
 
+  # composer
+  config.vm.provision 'shell', :privileged => true, :inline => <<-SHELL
+    apt-get install -y zip unzip
+    curl -sS https://getcomposer.org/installer | php
+    mv composer.phar /usr/local/bin/composer
+  SHELL
+
   # enable service
   config.vm.provision 'shell', :privileged => true, :inline => <<-SHELL
     service apache2 restart
     service mysql restart
+  SHELL
+
+  # dotfiles
+  config.vm.provision 'shell', :privileged => false, :inline => <<-SHELL
+    sudo apt-get install -y git tmux zsh vim-gnome
+    git clone https://github.com/844196/dotfiles /home/vagrant/dotfiles
+    /home/vagrant/dotfiles/bootstrap
+    sudo mkdir -p /usr/share/zsh/plugins
+    sudo git clone \
+      https://github.com/zsh-users/zsh-syntax-highlighting \
+      /usr/share/zsh/plugins/zsh-syntax-highlighting
+    sudo chsh -s /bin/zsh vagrant
+  SHELL
+
+  # rbenv and Ruby2.3
+  config.vm.provision 'shell', :privileged => false, :inline => <<-SHELL
+    sudo apt-get install -y \
+      libssl-dev \
+      libreadline-dev \
+      zlib1g-dev
+    git clone https://github.com/rbenv/rbenv ~/.rbenv
+    git clone https://github.com/rbenv/ruby-build ~/.rbenv/plugins/ruby-build
+    (cd ~/.rbenv && src/configure && make -C src)
+    export PATH="$HOME/.rbenv/bin:$PATH"
+    CONFIGURE_OPTS="--disable-install-rdoc" rbenv install 2.3.0 --verbose && rbenv global 2.3.0
+    eval "$(rbenv init -)" && gem install bundler
+  SHELL
+
+  # paco and peco
+  config.vm.provision 'shell', :privileged => true, :inline => <<-SHELL
+    apt-get install paco
+    wget https://github.com/peco/peco/releases/download/v0.3.5/peco_linux_amd64.tar.gz
+    tar -zxvf peco_linux_amd64.tar.gz
+    (cd peco_linux_amd64; paco -lD "install -pm 755 peco /usr/local/bin")
+    rm -rf peco_linux_amd64{,.tar.gz}
+  SHELL
+
+  # SSH keygen
+  config.vm.provision 'shell', :privileged => false, :inline => <<-SHELL
+    yes '' | ssh-keygen
   SHELL
 end
