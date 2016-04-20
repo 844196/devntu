@@ -73,7 +73,7 @@ Vagrant.configure(2) do |config|
 
   # dotfiles
   config.vm.provision 'shell', :privileged => false, :inline => <<-SHELL
-    sudo apt-get install -y git tmux zsh vim-gnome paco
+    sudo apt-get install -y git zsh vim-gnome paco
     git clone https://github.com/844196/dotfiles /home/vagrant/dotfiles
     /home/vagrant/dotfiles/bootstrap
     /home/vagrant/dotfiles/etc/install_zsh_syntax_highlighting
@@ -92,6 +92,15 @@ Vagrant.configure(2) do |config|
     tar -zxvf peco_linux_amd64.tar.gz
     (cd peco_linux_amd64; paco -lD "install -pm 755 peco /usr/local/bin")
     rm -rf peco_linux_amd64{,.tar.gz}
+  SHELL
+
+  # tmux
+  config.vm.provision 'shell', :privileged => true, :inline => <<-SHELL
+    apt-get install -y libevent-dev libncurses5-dev xsel
+    wget https://github.com/tmux/tmux/releases/download/2.1/tmux-2.1.tar.gz
+    tar -zxvf tmux-2.1.tar.gz
+    (cd tmux-2.1; ./configure; make; paco -lD "make install")
+    rm -rf tmux-2.1{,.tar.gz}
   SHELL
 
   # SSH keygen
