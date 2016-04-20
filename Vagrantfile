@@ -73,7 +73,7 @@ Vagrant.configure(2) do |config|
 
   # dotfiles
   config.vm.provision 'shell', :privileged => false, :inline => <<-SHELL
-    sudo apt-get install -y git tmux zsh vim-gnome
+    sudo apt-get install -y git tmux zsh vim-gnome paco
     git clone https://github.com/844196/dotfiles /home/vagrant/dotfiles
     /home/vagrant/dotfiles/bootstrap
     sudo mkdir -p /usr/share/zsh/plugins
@@ -89,9 +89,8 @@ Vagrant.configure(2) do |config|
     gem install bundler
   SHELL
 
-  # paco and peco
+  # peco
   config.vm.provision 'shell', :privileged => true, :inline => <<-SHELL
-    apt-get install paco
     wget https://github.com/peco/peco/releases/download/v0.3.5/peco_linux_amd64.tar.gz
     tar -zxvf peco_linux_amd64.tar.gz
     (cd peco_linux_amd64; paco -lD "install -pm 755 peco /usr/local/bin")
