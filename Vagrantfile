@@ -33,6 +33,7 @@ Vagrant.configure(2) do |config|
     debconf-set-selections <<< 'mysql-server mysql-server/root_password password root'
     debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password root'
     apt-get install -y mysql-server-5.6=5.6.28-0ubuntu0.14.04.1
+    mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -uroot -proot mysql
   SHELL
 
   # php7 and modules
