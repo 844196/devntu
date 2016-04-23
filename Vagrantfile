@@ -84,7 +84,10 @@ Vagrant.configure(2) do |config|
 
   # Ruby2.3
   config.vm.provision 'shell', :privileged => true, :inline => <<-SHELL
-    apt-get install -y ruby2.3=2.3.0-1bbox2~trusty1
+    apt-get install -y \
+      ruby2.3=2.3.0-1bbox2~trusty1 \
+      ruby2.3-dev=2.3.0-1bbox2~trusty1 \
+      g++=4:4.8.2-1ubuntu6
     gem install bundler
   SHELL
 
