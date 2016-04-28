@@ -1,0 +1,14 @@
+mysql:
+  root_password: 'root'
+zsh-syntax-highlighting:
+  version: '0.4.1'
+vim:
+  version: '7.4.1816'
+tmux:
+  version: '2.1'
+porg:
+  version: '0.8'
+phpmyadmin:
+  version: 'RELEASE_4_6_0'
+peco:
+  version: '0.3.5'
