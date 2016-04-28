@@ -17,7 +17,6 @@ Vagrant.configure(2) do |config|
   # add repository for PHP7
   config.vm.provision 'shell', :privileged => true, :inline => <<-SHELL
     yes '' | add-apt-repository ppa:ondrej/php
-    yes '' | add-apt-repository ppa:brightbox/ruby-ng
   SHELL
 
   # apt-get update
@@ -27,38 +26,27 @@ Vagrant.configure(2) do |config|
 
   # apache
   config.vm.provision 'shell', :privileged => true, :inline => <<-SHELL
-    apt-get install -y apache2=2.4.7-1ubuntu4.9
+    apt-get install -y apache2
   SHELL
 
   # mysql
   config.vm.provision 'shell', :privileged => true, :inline => <<-SHELL
     debconf-set-selections <<< 'mysql-server mysql-server/root_password password root'
     debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password root'
-    apt-get install -y mysql-server-5.6=5.6.28-0ubuntu0.14.04.1
+    apt-get install -y mysql-server-5.6
     mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -uroot -proot mysql
   SHELL
 
   # php7 and modules
   config.vm.provision 'shell', :privileged => true, :inline => <<-SHELL
     apt-get install -y \
-      php7.0=7.0.5-3+donate.sury.org~trusty+1 \
-      php7.0-mcrypt=7.0.5-3+donate.sury.org~trusty+1 \
-      php7.0-intl=7.0.5-3+donate.sury.org~trusty+1 \
-      php7.0-mbstring=7.0.5-3+donate.sury.org~trusty+1 \
-      php7.0-mysql=7.0.5-3+donate.sury.org~trusty+1 \
-      php7.0-mysql=7.0.5-3+donate.sury.org~trusty+1 \
-      php-gettext=1.0.11-2+deb.sury.org~trusty+1 \
-      libapache2-mod-php7.0=7.0.5-3+donate.sury.org~trusty+1
-  SHELL
-
-  # phpMyAdmin
-  config.vm.provision 'shell', :privileged => true, :inline => <<-SHELL
-    debconf-set-selections <<< 'phpmyadmin phpmyadmin/dbconfig-install boolean true'
-    debconf-set-selections <<< 'phpmyadmin phpmyadmin/app-password-confirm password root'
-    debconf-set-selections <<< 'phpmyadmin phpmyadmin/mysql/admin-pass password root'
-    debconf-set-selections <<< 'phpmyadmin phpmyadmin/mysql/app-pass password root'
-    debconf-set-selections <<< 'phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2'
-    apt-get install -y phpmyadmin=4:4.0.10-1
+      php7.0 \
+      php7.0-mcrypt \
+      php7.0-intl \
+      php7.0-mbstring \
+      php7.0-mysql \
+      php-gettext \
+      libapache2-mod-php7.0
   SHELL
 
   # composer
@@ -68,45 +56,36 @@ Vagrant.configure(2) do |config|
     mv composer.phar /usr/local/bin/composer
   SHELL
 
-  # enable service
+  # phpMyAdmin
   config.vm.provision 'shell', :privileged => true, :inline => <<-SHELL
+    cd /usr/share
+    wget https://files.phpmyadmin.net/phpMyAdmin/4.5.4.1/phpMyAdmin-4.5.4.1-all-languages.zip
+    unzip phpMyAdmin-4.5.4.1-all-languages.zip
+    mv phpMyAdmin-4.5.4.1-all-languages phpmyadmin
+    chmod -R 0755 phpmyadmin
+    tee -a /etc/apache2/sites-available/000-default.conf <<EOF >/dev/null
+      Alias /phpmyadmin "/usr/share/phpmyadmin/"
+      <Directory "/usr/share/phpmyadmin/">
+        Order allow,deny
+        Allow from all
+        Require all granted
+      </Directory>
+EOF
     service apache2 restart
-    service mysql restart
   SHELL
 
-  # dotfiles
-  config.vm.provision 'shell', :privileged => false, :inline => <<-SHELL
-    sudo apt-get install -y git zsh vim-gnome paco
-    git clone https://github.com/844196/dotfiles /home/vagrant/dotfiles
-    /home/vagrant/dotfiles/bootstrap
-    /home/vagrant/dotfiles/etc/install_zsh_syntax_highlighting
-    sudo chsh -s /bin/zsh vagrant
-  SHELL
-
-  # Ruby2.3
+  # node.js
   config.vm.provision 'shell', :privileged => true, :inline => <<-SHELL
-    apt-get install -y \
-      ruby2.3=2.3.0-1bbox2~trusty1 \
-      ruby2.3-dev=2.3.0-1bbox2~trusty1 \
-      g++=4:4.8.2-1ubuntu6
-    gem install bundler
+    apt-get install -y nodejs npm
+    npm cache clean
+    npm install n -g
+    n stable
+    ln -sf /usr/local/bin/node /usr/bin/node
   SHELL
 
-  # peco
+  # Bower
   config.vm.provision 'shell', :privileged => true, :inline => <<-SHELL
-    wget https://github.com/peco/peco/releases/download/v0.3.5/peco_linux_amd64.tar.gz
-    tar -zxvf peco_linux_amd64.tar.gz
-    (cd peco_linux_amd64; paco -lD "install -pm 755 peco /usr/local/bin")
-    rm -rf peco_linux_amd64{,.tar.gz}
-  SHELL
-
-  # tmux
-  config.vm.provision 'shell', :privileged => true, :inline => <<-SHELL
-    apt-get install -y libevent-dev libncurses5-dev xsel
-    wget https://github.com/tmux/tmux/releases/download/2.1/tmux-2.1.tar.gz
-    tar -zxvf tmux-2.1.tar.gz
-    (cd tmux-2.1; ./configure; make; paco -lD "make install")
-    rm -rf tmux-2.1{,.tar.gz}
+    npm install bower -g
   SHELL
 
   # SSH keygen
