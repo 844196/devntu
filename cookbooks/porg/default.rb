@@ -1,3 +1,5 @@
+package 'g++'
+
 execute 'download porg' do
   cwd '/tmp'
   command <<-EOS
